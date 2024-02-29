@@ -6,7 +6,8 @@
         "success": "Success",
         "fail": "Fail",
         "createTime": "Create Time",
-        "name": "Name"
+        "name": "Name",
+        "moreOperations": "More Operations"
     },
     "login": {
         "tab": "Login with account and password"
@@ -55,6 +56,16 @@
         "state": "state",
         "statePlaceholder": "Please select state",
         "operation": "Operation",
-        "viewLog": "View Log"
+        "viewLog": "View Log",
+        "addNewInstance": "Add New Instance",
+        "addRoleGroup": "Add Role Group",
+        "start": "Start",
+        "stop": "Stop",
+        "restart": "Restart",
+        "decommission": "Decommission",
+        "assignToRoleGroup": "Assign To Role Group",
+        "delete": "Delete",
+        "roleGroupList": "Role Group List",
+        "roleGroupListPlaceholder": "Please select role group"
     }
 }

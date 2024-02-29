@@ -7,7 +7,8 @@ interface Resources {
       "success": "Success",
       "fail": "Fail",
       "createTime": "Create Time",
-      "name": "Name"
+      "name": "Name",
+      "moreOperations": "More Operations"
     },
     "login": {
       "tab": "Login with account and password"
@@ -44,6 +45,29 @@ interface Resources {
       "createTime": "Create Time",
       "operation": "Operation",
       "deleteConfirm": "Confirm delete current User?"
+    },
+    "service": {
+      "title": "Service Manage",
+      "roleType": "Role Type",
+      "roleTypePlaceholder": "Please select role type",
+      "hostname": "Host Name",
+      "hostnamePlaceholder": "Please input host name",
+      "roleGroupName": "Role Group Name",
+      "roleGroupNamePlaceholder": "Please select role group name",
+      "state": "state",
+      "statePlaceholder": "Please select state",
+      "operation": "Operation",
+      "viewLog": "View Log",
+      "addNewInstance": "Add New Instance",
+      "addRoleGroup": "Add Role Group",
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "decommission": "Decommission",
+      "assignToRoleGroup": "Assign To Role Group",
+      "delete": "Delete",
+      "roleGroupList": "Role Group List",
+      "roleGroupListPlaceholder": "Please select role group"
     }
   }
 }

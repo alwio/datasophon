@@ -1,13 +1,25 @@
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import { AlertOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons'
-import { Modal, Button } from 'antd'
+import { AlertOutlined, CheckCircleOutlined, StopOutlined, DownOutlined } from '@ant-design/icons'
+import { Modal, Button, Dropdown, Space } from 'antd'
 import CodeMirror from '../../../components/CodeMirror'
+import RoleGroupModal from './RoleGroupModal'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom';
 import { APIS } from '../../../services/service';
 import request from '../../../services/request'
 import { App } from 'antd';
 import { useEffect, useRef, useState } from 'react';
+import { MenuProps } from 'antd/lib'
+
+enum OperateType {
+  START = 'START',
+  STOP = 'STOP',
+  RESTART = 'RESTART',
+  DECOMMISSION = 'DECOMMISSION',
+  ASSIGN = 'ASSIGN',
+  DELETE = 'DELETE',
+}
+
 interface InstanceType {
   id: number,
   clusterId: number,
@@ -27,15 +39,18 @@ interface InstanceType {
 
 const ServiceInstance = () => {
   const { t } = useTranslation()
-  const { serviceId } = useParams()
-  const { message } = App.useApp();
+  const { clusterId, serviceId } = useParams()
+  const { message, modal } = App.useApp();
 
   const [roleTypeOptions, setRoleTypeOptions] = useState([])
   const [roleGroupOptions, setRoleGroupOptions] = useState([])
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logContent, setLogContent] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<React.Key[]>([])
+  const tableRef = useRef<any>()
   const codeMirrorRef = useRef<any>()
+  const roleGroupModalRef = useRef<any>()
   const currentRecord = useRef<InstanceType>()
   const timer = useRef<any>(null)
 
@@ -53,7 +68,7 @@ const ServiceInstance = () => {
         options: roleTypeOptions,
         fieldNames: {
           label: 'serviceRoleName',
-          value: 'serviceId'
+          value: 'serviceRoleName'
         }
       },
       dataIndex: 'serviceRoleName'
@@ -73,10 +88,10 @@ const ServiceInstance = () => {
         options: roleGroupOptions,
         fieldNames: {
           label: 'roleGroupName',
-          value: 'serviceInstanceId'
+          value: 'id'
         }
       },
-      dataIndex: 'roleGroupName'
+      dataIndex: 'roleGroupId'
     },
     {
       title: t('service.state'),
@@ -94,7 +109,7 @@ const ServiceInstance = () => {
       dataIndex: 'serviceRoleState',
       render: (text, record) => [
         getServiceRoleStateIcon(record.serviceRoleStateCode),
-        <span style={{marginLeft: '10px'}}>{text}</span>
+        <span key='text' style={{marginLeft: '10px'}}>{text}</span>
       ]
     },
     {
@@ -107,12 +122,64 @@ const ServiceInstance = () => {
     }
   ]
 
+  const items: MenuProps['items'] = [
+    {
+      key: OperateType.START,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.START)}}>
+          {t('service.start')}
+        </a>
+      ),
+    },
+    {
+      key: OperateType.STOP,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.STOP)}}>
+          {t('service.stop')}
+        </a>
+      ),
+    },
+    {
+      key: OperateType.RESTART,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.RESTART)}}>
+          {t('service.restart')}
+        </a>
+      ),
+    },
+    {
+      key: OperateType.DECOMMISSION,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.DECOMMISSION)}}>
+          {t('service.decommission')}
+        </a>
+      ),
+      disabled: serviceId !== '36' && serviceId !== '37'
+    },
+    {
+      key: OperateType.ASSIGN,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.ASSIGN)}}>
+          {t('service.assignToRoleGroup')}
+        </a>
+      ),
+    },
+    {
+      key: OperateType.DELETE,
+      label: (
+        <a onClick={() => {handleOperateInstance(OperateType.DELETE)}}>
+          {t('service.delete')}
+        </a>
+      ),
+    }
+  ]
+
   const getServiceRoleStateIcon = (serviceRoleStateCode: number) => {
     return serviceRoleStateCode === 1
-      ? <CheckCircleOutlined style={{color: '#52c41a'}} />
+      ? <CheckCircleOutlined key='icon' style={{color: '#52c41a'}} />
         : serviceRoleStateCode === 2
-          ? <StopOutlined style={{color: '#f5222f'}} />
-            : <AlertOutlined style={{color: '#FF8833'}} />
+          ? <StopOutlined key='icon' style={{color: '#f5222f'}} />
+            : <AlertOutlined key='icon' style={{color: '#FF8833'}} />
   }
 
   const getServiceRoleType = async () => {
@@ -165,11 +232,142 @@ const ServiceInstance = () => {
     }
   }
 
+  const handleSelectionChange = (selectedRowKeys: React.Key[]) => {
+    setSelectedIds(selectedRowKeys)
+  }
+
+  const handleOperateInstance = (type: OperateType) => {
+    if (!selectedIds.length) {
+      message.warning('请至少选择一个实例')
+      return
+    }
+
+    if (type === OperateType.START) {
+      confirmOperate(type)
+    }
+
+    if (type === OperateType.STOP) {
+      confirmOperate(type)
+    }
+
+    if (type === OperateType.RESTART) {
+      confirmOperate(type)
+    }
+
+    if (type === OperateType.DECOMMISSION) {
+      confirmOperate(type)
+    }
+
+    if (type === OperateType.ASSIGN) {
+      handleAssignInstances()
+    }
+
+    if (type === OperateType.DELETE) {
+      handleDeleteInstances()
+    }
+  }
+
+  const confirmOperate = (type: OperateType) => {
+    const typeText = type === OperateType.START ? t('service.start') : type === OperateType.STOP ? t('service.stop') : type === OperateType.RESTART ? t('service.restart') : type === OperateType.DECOMMISSION ? t('service.decommission') : ''
+    modal.confirm({
+      title: '提示',
+      content: `确认${typeText}吗？`,
+      onOk: async () => {
+        if (type === OperateType.DECOMMISSION) {
+          handleDecommissionInstances()
+        } else {
+          handleOperateInstances(type)
+        }
+      }
+    })
+  }
+
+  const handleDecommissionInstances = async () => {
+    const params = {
+      serviceRoleInstanceIds: selectedIds.join(',')
+    }
+    
+    const { code, msg } = await APIS.InstanceApi.decommissionNode(params)
+
+    if (code === 200) {
+      message.success('操作成功')
+      tableRef.current.clearSelected()
+      tableRef.current.reload()
+    } else {
+      message.error(msg)
+    }
+  }
+
+  const handleOperateInstances = async (type: OperateType) => {
+    const params = {
+      clusterId: clusterId || '',
+      commandType: type === OperateType.START ? 'START_SERVICE' : type === OperateType.STOP ? 'STOP_SERVICE' : type === OperateType.RESTART ? 'RESTART_SERVICE' : '',
+      serviceInstanceId: serviceId || '',
+      serviceRoleInstancesIds: selectedIds.join(',')
+    }
+
+    const { code, msg } = await APIS.InstanceApi.generateServiceRoleCommand(params)
+
+    if (code === 200) {
+      message.success('操作成功')
+      tableRef.current.clearSelected()
+      tableRef.current.reload()
+    } else {
+      message.error(msg)
+    }
+  }
+
+  const handleAssignInstances = () => {
+    roleGroupModalRef.current.init(serviceId)
+  }
+
+  const bindRoleGroup = async (roleGroupId: string) => {
+    const params = {
+      roleInstanceIds: selectedIds.join(','),
+      roleGroupId
+    }
+
+    const { code, msg } = await APIS.InstanceApi.bindRoleGroup(params)
+
+    if (code === 200) {
+      message.success('操作成功')
+      tableRef.current.clearSelected()
+      tableRef.current.reload()
+    } else {
+      message.error(msg)
+    }
+
+    return code === 200
+  }
+
+  const handleDeleteInstances = () => {
+    modal.confirm({
+      title: '提示',
+      content: '确认删除吗？',
+      onOk: async () => {
+        const params = {
+          serviceRoleInstancesIds: selectedIds.join(',')
+        }
+
+        const { code, msg } = await APIS.InstanceApi.deleteExample(params)
+
+        if (code === 200) {
+          message.success('操作成功')
+          tableRef.current.clearSelected()
+          tableRef.current.reload()
+        } else {
+          message.error(msg)
+        }
+      }
+    })
+  }
+
   useEffect(() => {
     getServiceRoleType()
     getServiceRoleGroupList()
   }, [])
 
+  // 日志定时刷新
   useEffect(() => {
     if (logModalOpen) {
       timer.current = setInterval(() => {
@@ -193,12 +391,17 @@ const ServiceInstance = () => {
   return (
     <PageContainer header={{ title: t('service.title')}}>
       <ProTable
+        actionRef={tableRef}
         columns={columns}
+        rowSelection={{
+          onChange: handleSelectionChange
+        }}
+        tableAlertRender={false}
         rowKey="id"
         loading={loading}
         request={async (params) => {
           setLoading(true)
-          const { code, data } = await request.ajax({
+          const { code, data, total } = await request.ajax({
             method: 'POST',
             url: '/cluster/service/role/instance/list',
             form: {
@@ -211,10 +414,39 @@ const ServiceInstance = () => {
             setLoading(false)
             return {
               data,
-              success: code === 200
+              success: code === 200,
+              total
             }
           }
         }
+        pagination={{
+          pageSize: 10
+        }}
+        toolBarRender={() => [
+          <Dropdown menu={{ items }}>
+            <Button
+              key="button"
+              type="primary"
+            >
+              <Space>
+                {t('common.moreOperations')}
+                <DownOutlined />
+              </Space>
+            </Button>
+          </Dropdown>,
+          <Button
+            key="button"
+            type="primary"
+          >
+            {t('service.addNewInstance')}
+          </Button>,
+          <Button
+            key="button"
+            type="primary"
+          >
+            {t('service.addRoleGroup')}
+          </Button>,
+        ]}
         toolbar={{ 
           // 隐藏工具栏设置区
           settings: []
@@ -225,6 +457,7 @@ const ServiceInstance = () => {
       ]} onCancel={() => {setLogModalOpen(false)}}>
         <CodeMirror ref={codeMirrorRef} value={logContent} editable={false} />
       </Modal>
+      <RoleGroupModal ref={roleGroupModalRef} bindRoleGroup={bindRoleGroup} />
     </PageContainer>
   )
 }

@@ -5,7 +5,8 @@
         "delete": "删除",
         "success": "成功",
         "fail": "失败",
-        "createTime": "创建时间"
+        "createTime": "创建时间",
+        "moreOperations": "更多操作"
     },
     "login": {
         "tab": "账号密码登录"
@@ -55,6 +56,16 @@
         "state": "状态",
         "statePlaceholder": "请选择状态",
         "operation": "操作",
-        "viewLog": "查看日志"
+        "viewLog": "查看日志",
+        "addNewInstance": "添加新实例",
+        "addRoleGroup": "添加角色组",
+        "start": "启动",
+        "stop": "停止",
+        "restart": "重启",
+        "decommission": "退役",
+        "assignToRoleGroup": "分配角色组",
+        "delete": "删除",
+        "roleGroupList": "角色组列表",
+        "roleGroupListPlaceholder": "请选择角色组"
     }
 }

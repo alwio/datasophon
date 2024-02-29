@@ -43,6 +43,66 @@ export class LoginApi {
           ...p
       })
     }
+
+    public deleteExample (form?:any, opt?:any):  AjaxPromise<string>  {
+      const url = this.$basePath + `/cluster/service/role/instance/delete`;
+      const p: any = {};
+      p.form = form;
+      return ajax.ajax({
+          ...opt,
+          method: 'POST',
+          url,
+          ...p
+      })
+    }
+
+    public getRoleGroupList (form?:any, opt?:any):  AjaxPromise<string>  {
+      const url = this.$basePath + `/cluster/service/instance/role/group/list`;
+      const p: any = {};
+      p.form = form;
+      return ajax.ajax({
+          ...opt,
+          method: 'POST',
+          url,
+          ...p
+      })
+    }
+
+    public bindRoleGroup (form?:any, opt?:any):  AjaxPromise<string>  {
+      const url = this.$basePath + `/cluster/service/instance/role/group/bind`;
+      const p: any = {};
+      p.form = form;
+      return ajax.ajax({
+          ...opt,
+          method: 'POST',
+          url,
+          ...p
+      })
+    }
+
+    public decommissionNode (form?:any, opt?:any):  AjaxPromise<string>  {
+      const url = this.$basePath + `/cluster/service/role/instance/decommissionNode`;
+      const p: any = {};
+      p.form = form;
+      return ajax.ajax({
+          ...opt,
+          method: 'POST',
+          url,
+          ...p
+      })
+    }
+
+    public generateServiceRoleCommand (form?:any, opt?:any):  AjaxPromise<string>  {
+      const url = this.$basePath + `/api/cluster/service/command/generateServiceRoleCommand`;
+      const p: any = {};
+      p.form = form;
+      return ajax.ajax({
+          ...opt,
+          method: 'POST',
+          url,
+          ...p
+      })
+    }
 }
 
 export default new LoginApi()

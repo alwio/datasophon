@@ -140,7 +140,7 @@ const UserList = () => {
                 columns={columns}
                 rowKey="id"
                 request={async (params) => {
-                    const { code, data } = await request.ajax({
+                    const { code, data, total } = await request.ajax({
                         method: 'POST',
                         url: '/api/user/list',
                         form: {
@@ -151,7 +151,8 @@ const UserList = () => {
                     });
                     return {
                         data,
-                        success: code === 200
+                        success: code === 200,
+                        total
                     }
                   }}
                 toolBarRender={() => [
